@@ -1,0 +1,6 @@
+# ads.txt for DSA Vault (dsavault.in)
+# Update YOUR_PUBLISHER_ID with your Google AdSense publisher ID
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# Uncomment the line below and replace with your actual pub ID:
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
