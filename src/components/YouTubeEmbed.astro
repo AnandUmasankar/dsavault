@@ -1,0 +1,38 @@
+---
+interface Props {
+  videoId: string;
+  title?: string;
+}
+
+const { videoId, title = 'Video explanation' } = Astro.props;
+const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+---
+
+<div class="yt-embed relative aspect-video bg-vault-surface rounded-lg overflow-hidden cursor-pointer group" data-video-id={videoId}>
+  <img
+    src={thumbnailUrl}
+    alt={title}
+    class="w-full h-full object-cover"
+    loading="lazy"
+  />
+  <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+    <svg class="w-16 h-16 text-white/90 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.yt-embed').forEach((el) => {
+    el.addEventListener('click', () => {
+      const videoId = (el as HTMLElement).dataset.videoId;
+      if (!videoId) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1`;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.className = 'w-full aspect-video rounded-lg';
+      el.replaceWith(iframe);
+    }, { once: true });
+  });
+</script>

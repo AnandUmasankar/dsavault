@@ -1,0 +1,100 @@
+---
+interface Problem {
+  id: string;
+  number: number;
+  title: string;
+  difficulty: string;
+  tags: string[];
+  companies: string[];
+}
+
+interface Props {
+  problems: Problem[];
+  allTags: string[];
+}
+
+const { problems, allTags } = Astro.props;
+---
+
+<div id="search-filter" class="mb-8 space-y-4">
+  <!-- Search -->
+  <input
+    id="search-input"
+    type="text"
+    placeholder="Search problems by name, number, company, or topic..."
+    class="w-full bg-vault-surface border border-vault-border rounded-lg px-4 py-2.5 text-vault-text placeholder-vault-muted focus:outline-none focus:border-vault-primary text-sm"
+  />
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-3">
+    <!-- Difficulty filters -->
+    <div class="flex gap-1.5">
+      <button data-difficulty="all" class="filter-btn active px-3 py-1.5 text-xs rounded-full bg-vault-primary text-white font-medium">All</button>
+      <button data-difficulty="Easy" class="filter-btn px-3 py-1.5 text-xs rounded-full bg-vault-surface text-vault-muted border border-vault-border hover:border-vault-easy font-medium">Easy</button>
+      <button data-difficulty="Medium" class="filter-btn px-3 py-1.5 text-xs rounded-full bg-vault-surface text-vault-muted border border-vault-border hover:border-vault-medium font-medium">Medium</button>
+      <button data-difficulty="Hard" class="filter-btn px-3 py-1.5 text-xs rounded-full bg-vault-surface text-vault-muted border border-vault-border hover:border-vault-hard font-medium">Hard</button>
+    </div>
+
+    <!-- Topic filter -->
+    <select id="topic-filter" class="bg-vault-surface border border-vault-border rounded-lg px-3 py-1.5 text-xs text-vault-muted focus:outline-none focus:border-vault-primary">
+      <option value="">All Topics</option>
+      {allTags.map((tag) => (
+        <option value={tag}>{tag}</option>
+      ))}
+    </select>
+  </div>
+
+  <!-- Count -->
+  <p id="problem-count" class="text-vault-muted text-sm">
+    Showing {problems.length} of {problems.length} problems
+  </p>
+</div>
+
+<script define:vars={{ problems }}>
+  const searchInput = document.getElementById('search-input');
+  const topicFilter = document.getElementById('topic-filter');
+  const countEl = document.getElementById('problem-count');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const rows = document.querySelectorAll('tbody tr[data-problem]');
+
+  let activeDifficulty = 'all';
+
+  function applyFilters() {
+    const query = searchInput.value.toLowerCase();
+    const topic = topicFilter.value;
+    let visible = 0;
+
+    rows.forEach((row) => {
+      const data = JSON.parse(row.getAttribute('data-problem') || '{}');
+      const matchesSearch = !query ||
+        data.title.toLowerCase().includes(query) ||
+        String(data.number).includes(query) ||
+        data.companies.some((c) => c.toLowerCase().includes(query)) ||
+        data.tags.some((t) => t.toLowerCase().includes(query));
+      const matchesDifficulty = activeDifficulty === 'all' || data.difficulty === activeDifficulty;
+      const matchesTopic = !topic || data.tags.includes(topic);
+
+      const show = matchesSearch && matchesDifficulty && matchesTopic;
+      row.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    countEl.textContent = `Showing ${visible} of ${problems.length} problems`;
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+  topicFilter.addEventListener('change', applyFilters);
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach((b) => {
+        b.classList.remove('active', 'bg-vault-primary', 'text-white');
+        b.classList.add('bg-vault-surface', 'text-vault-muted');
+      });
+      btn.classList.add('active', 'bg-vault-primary', 'text-white');
+      btn.classList.remove('bg-vault-surface', 'text-vault-muted');
+      activeDifficulty = btn.getAttribute('data-difficulty');
+      applyFilters();
+    });
+  });
+</script>

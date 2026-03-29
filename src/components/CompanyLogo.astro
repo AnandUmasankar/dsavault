@@ -1,0 +1,127 @@
+---
+interface Props {
+  company: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { company, size = 'md' } = Astro.props;
+
+const companyBranding: Record<string, { color: string; glow: string; file: string }> = {
+  'amazon':     { color: '#FF9900', glow: '255,153,0',   file: 'amazon' },
+  'google':     { color: '#4285F4', glow: '66,133,244',  file: 'google' },
+  'meta':       { color: '#0668E1', glow: '6,104,225',   file: 'meta' },
+  'microsoft':  { color: '#00A4EF', glow: '0,164,239',   file: 'microsoft' },
+  'apple':      { color: '#A2AAAD', glow: '162,170,173', file: 'apple' },
+  'bloomberg':  { color: '#2800D7', glow: '40,0,215',    file: 'bloomberg' },
+  'netflix':    { color: '#E50914', glow: '229,9,20',    file: 'netflix' },
+  'uber':       { color: '#000000', glow: '100,100,100', file: 'uber' },
+  'adobe':      { color: '#FF0000', glow: '255,0,0',     file: 'adobe' },
+  'oracle':     { color: '#F80000', glow: '248,0,0',     file: 'oracle' },
+  'salesforce': { color: '#00A1E0', glow: '0,161,224',   file: 'salesforce' },
+  'twitter':    { color: '#000000', glow: '100,100,100', file: 'twitter' },
+  'linkedin':   { color: '#0A66C2', glow: '10,102,194',  file: 'linkedin' },
+  'snap':       { color: '#FFFC00', glow: '255,252,0',   file: 'snap' },
+  'snapchat':   { color: '#FFFC00', glow: '255,252,0',   file: 'snapchat' },
+  'spotify':    { color: '#1DB954', glow: '29,185,84',   file: 'spotify' },
+  'paypal':     { color: '#003087', glow: '0,48,135',    file: 'paypal' },
+  'tesla':      { color: '#E82127', glow: '232,33,39',   file: 'tesla' },
+  'ibm':        { color: '#054ADA', glow: '5,74,218',    file: 'ibm' },
+  'intel':      { color: '#0071C5', glow: '0,113,197',   file: 'intel' },
+  'samsung':    { color: '#1428A0', glow: '20,40,160',   file: 'samsung' },
+  'tiktok':     { color: '#000000', glow: '255,0,80',    file: 'tiktok' },
+  'airbnb':     { color: '#FF5A5F', glow: '255,90,95',   file: 'airbnb' },
+  'stripe':     { color: '#635BFF', glow: '99,91,255',   file: 'stripe' },
+  'twitch':     { color: '#9146FF', glow: '145,70,255',  file: 'twitch' },
+  'nvidia':     { color: '#76B900', glow: '118,185,0',   file: 'nvidia' },
+  'walmart':    { color: '#0071CE', glow: '0,113,206',   file: 'walmart' },
+  'yahoo':      { color: '#6001D2', glow: '96,1,210',    file: 'yahoo' },
+  'cisco':      { color: '#049FD9', glow: '4,159,217',   file: 'cisco' },
+  'vmware':     { color: '#607078', glow: '96,112,120',  file: 'vmware' },
+  'databricks': { color: '#FF3621', glow: '255,54,33',   file: 'databricks' },
+};
+
+const slug = company.toLowerCase();
+const branding = companyBranding[slug];
+const hasLogo = !!branding;
+
+const sizeMap = {
+  sm: { box: 32, icon: 16, pad: 'p-2', rounded: 'rounded-lg' },
+  md: { box: 56, icon: 28, pad: 'p-3.5', rounded: 'rounded-xl' },
+  lg: { box: 80, icon: 40, pad: 'p-5', rounded: 'rounded-2xl' },
+};
+
+const s = sizeMap[size];
+
+const brandColor = branding?.color || '#3B82F6';
+const glowRgb = branding?.glow || '59,130,246';
+const logoSrc = hasLogo ? `/logos/${branding.file}.svg` : null;
+const fallbackLetter = company.charAt(0).toUpperCase();
+---
+
+{hasLogo ? (
+  <div
+    class={`company-logo ${s.rounded}`}
+    style={`width:${s.box}px;height:${s.box}px;--brand-color:${brandColor};--glow-rgb:${glowRgb};`}
+  >
+    <img
+      src={logoSrc}
+      alt={`${company} logo`}
+      width={s.icon}
+      height={s.icon}
+      loading="lazy"
+      class="company-logo-img"
+    />
+  </div>
+) : (
+  <div
+    class={`company-logo company-logo-fallback ${s.rounded}`}
+    style={`width:${s.box}px;height:${s.box}px;--brand-color:#3B82F6;--glow-rgb:59,130,246;`}
+  >
+    <span class="company-logo-letter" style={`font-size:${s.icon * 0.65}px;`}>{fallbackLetter}</span>
+  </div>
+)}
+
+<style>
+  .company-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--brand-color) 12%, #1E293B);
+    border: 1px solid color-mix(in srgb, var(--brand-color) 25%, transparent);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 0 12px rgba(var(--glow-rgb), 0.15);
+    flex-shrink: 0;
+  }
+  .company-logo:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 24px rgba(var(--glow-rgb), 0.35), 0 0 48px rgba(var(--glow-rgb), 0.15);
+    border-color: color-mix(in srgb, var(--brand-color) 50%, transparent);
+  }
+  .company-logo-img {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+  }
+  .company-logo:hover .company-logo-img {
+    opacity: 1;
+    filter: none;
+  }
+  .company-logo:hover .company-logo-img {
+    filter: brightness(0) saturate(100%) drop-shadow(0 0 1px var(--brand-color));
+  }
+  .company-logo-letter {
+    color: rgba(248, 250, 252, 0.9);
+    font-weight: 800;
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1;
+  }
+  .company-logo:hover .company-logo-letter {
+    color: var(--brand-color);
+  }
+
+  /* Colored logo on hover */
+  .company-logo:hover .company-logo-img {
+    filter: none;
+    opacity: 1;
+  }
+</style>

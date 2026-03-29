@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { toSlug } from '../../utils/slug';
+
+const problems = await getCollection('problems');
+const topicMap = new Map<string, number>();
+
+for (const problem of problems) {
+  for (const tag of problem.data.tags) {
+    topicMap.set(tag, (topicMap.get(tag) || 0) + 1);
+  }
+}
+
+const topics = [...topicMap.entries()]
+  .sort((a, b) => b[1] - a[1]);
+---
+
+<BaseLayout title="Topics" description="Browse LeetCode problems by topic — Arrays, Dynamic Programming, Trees, Graphs, and more.">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-vault-text mb-6">Topics</h1>
+    <p class="text-vault-muted mb-8">Problems organized by data structure and algorithm topic.</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {topics.map(([topic, count]) => (
+        <a href={`/topic/${toSlug(topic)}/`} class="bg-vault-surface hover:bg-vault-surface-hover border border-vault-border rounded-lg p-4 transition-colors text-center">
+          <p class="text-vault-text font-semibold text-sm">{topic}</p>
+          <p class="text-vault-muted text-xs mt-1">{count} problem{count !== 1 ? 's' : ''}</p>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

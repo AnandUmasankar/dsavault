@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DifficultyBadge from '../../components/DifficultyBadge.astro';
+import CompanyLogo from '../../components/CompanyLogo.astro';
+import { toSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+  const problems = await getCollection('problems');
+  const companySet = new Set<string>();
+
+  for (const problem of problems) {
+    for (const company of problem.data.companies) {
+      companySet.add(company);
+    }
+  }
+
+  return [...companySet].map((company) => ({
+    params: { company: toSlug(company) },
+    props: {
+      company,
+      problems: problems
+        .filter((p) => p.data.companies.includes(company))
+        .sort((a, b) => a.data.number - b.data.number),
+    },
+  }));
+}
+
+const { company, problems } = Astro.props;
+---
+
+<BaseLayout title={`${company} Interview Problems`} description={`LeetCode problems asked by ${company} — solutions with visual flow diagrams in Python and Java.`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center gap-5 mb-8">
+      <CompanyLogo company={company} size="lg" />
+      <div>
+        <h1 class="text-3xl font-bold text-vault-text">{company}</h1>
+        <p class="text-vault-muted mt-1">{problems.length} problem{problems.length !== 1 ? 's' : ''} tagged to {company}</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-vault-border text-left">
+            <th class="py-3 px-2 text-vault-muted font-medium w-16">#</th>
+            <th class="py-3 px-2 text-vault-muted font-medium">Problem</th>
+            <th class="py-3 px-2 text-vault-muted font-medium w-24">Difficulty</th>
+            <th class="py-3 px-2 text-vault-muted font-medium hidden md:table-cell">Topics</th>
+          </tr>
+        </thead>
+        <tbody>
+          {problems.map((problem) => (
+            <tr class="border-b border-vault-border/50 hover:bg-vault-surface transition-colors">
+              <td class="py-3 px-2 text-vault-muted">{problem.data.number}</td>
+              <td class="py-3 px-2">
+                <a href={`/problems/${problem.id}/`} class="text-vault-text hover:text-vault-primary transition-colors font-medium">
+                  {problem.data.title}
+                </a>
+              </td>
+              <td class="py-3 px-2">
+                <DifficultyBadge difficulty={problem.data.difficulty} />
+              </td>
+              <td class="py-3 px-2 hidden md:table-cell">
+                <div class="flex flex-wrap gap-1">
+                  {problem.data.tags.map((tag) => (
+                    <a href={`/topic/${toSlug(tag)}/`} class="text-xs px-1.5 py-0.5 rounded bg-vault-primary/10 text-vault-primary">
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</BaseLayout>

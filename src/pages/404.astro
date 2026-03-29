@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page Not Found">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+    <h1 class="text-6xl font-bold text-vault-primary mb-4">404</h1>
+    <p class="text-xl text-vault-text mb-2">Page Not Found</p>
+    <p class="text-vault-muted mb-8">The page you're looking for doesn't exist or has been moved.</p>
+    <div class="flex justify-center gap-4">
+      <a href="/" class="bg-vault-primary hover:bg-vault-primary-hover text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
+        Go Home
+      </a>
+      <a href="/problems/" class="bg-vault-surface hover:bg-vault-surface-hover border border-vault-border text-vault-text font-semibold px-6 py-2.5 rounded-lg transition-colors">
+        Browse Problems
+      </a>
+    </div>
+  </div>
+</BaseLayout>

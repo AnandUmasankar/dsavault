@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DifficultyBadge from '../../components/DifficultyBadge.astro';
+import { toSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+  const problems = await getCollection('problems');
+  const topicSet = new Set<string>();
+
+  for (const problem of problems) {
+    for (const tag of problem.data.tags) {
+      topicSet.add(tag);
+    }
+  }
+
+  return [...topicSet].map((topic) => ({
+    params: { topic: toSlug(topic) },
+    props: {
+      topic,
+      problems: problems
+        .filter((p) => p.data.tags.includes(topic))
+        .sort((a, b) => a.data.number - b.data.number),
+    },
+  }));
+}
+
+const { topic, problems } = Astro.props;
+---
+
+<BaseLayout title={`${topic} Problems`} description={`LeetCode ${topic} problems — solutions with visual flow diagrams in Python and Java.`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-vault-text mb-2">{topic}</h1>
+    <p class="text-vault-muted mb-8">{problems.length} problem{problems.length !== 1 ? 's' : ''}</p>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-vault-border text-left">
+            <th class="py-3 px-2 text-vault-muted font-medium w-16">#</th>
+            <th class="py-3 px-2 text-vault-muted font-medium">Problem</th>
+            <th class="py-3 px-2 text-vault-muted font-medium w-24">Difficulty</th>
+            <th class="py-3 px-2 text-vault-muted font-medium hidden lg:table-cell">Companies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {problems.map((problem) => (
+            <tr class="border-b border-vault-border/50 hover:bg-vault-surface transition-colors">
+              <td class="py-3 px-2 text-vault-muted">{problem.data.number}</td>
+              <td class="py-3 px-2">
+                <a href={`/problems/${problem.id}/`} class="text-vault-text hover:text-vault-primary transition-colors font-medium">
+                  {problem.data.title}
+                </a>
+              </td>
+              <td class="py-3 px-2">
+                <DifficultyBadge difficulty={problem.data.difficulty} />
+              </td>
+              <td class="py-3 px-2 hidden lg:table-cell">
+                <div class="flex flex-wrap gap-1">
+                  {problem.data.companies.slice(0, 3).map((company) => (
+                    <a href={`/company/${toSlug(company)}/`} class="text-xs text-vault-muted hover:text-vault-text">
+                      {company}
+                    </a>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</BaseLayout>

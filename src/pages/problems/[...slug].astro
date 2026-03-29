@@ -1,0 +1,19 @@
+---
+import { getCollection, render } from 'astro:content';
+import ProblemLayout from '../../layouts/ProblemLayout.astro';
+
+export async function getStaticPaths() {
+  const problems = await getCollection('problems');
+  return problems.map((problem) => ({
+    params: { slug: problem.id },
+    props: { problem },
+  }));
+}
+
+const { problem } = Astro.props;
+const { Content } = await render(problem);
+---
+
+<ProblemLayout frontmatter={problem.data}>
+  <Content />
+</ProblemLayout>

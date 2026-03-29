@@ -1,0 +1,193 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CompanyLogo from '../components/CompanyLogo.astro';
+import { toSlug } from '../utils/slug';
+
+const problems = await getCollection('problems');
+
+// Topic grid
+const topicMap = new Map<string, number>();
+for (const problem of problems) {
+  for (const tag of problem.data.tags) {
+    topicMap.set(tag, (topicMap.get(tag) || 0) + 1);
+  }
+}
+const topics = [...topicMap.entries()].sort((a, b) => b[1] - a[1]);
+
+// Company quick-links (top 5)
+const companyMap = new Map<string, number>();
+for (const problem of problems) {
+  for (const company of problem.data.companies) {
+    companyMap.set(company, (companyMap.get(company) || 0) + 1);
+  }
+}
+const topCompanies = [...companyMap.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 5);
+
+// All problems sorted by number
+const allProblems = problems
+  .sort((a, b) => a.data.number - b.data.number);
+---
+
+<BaseLayout title="DSA Vault">
+  <!-- Hero -->
+  <section class="py-16 sm:py-24 text-center">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h1 class="text-4xl sm:text-6xl font-bold text-vault-text mb-4">
+        <span class="text-2xl sm:text-3xl">&#128274;</span> DSA Vault
+      </h1>
+      <p class="text-xl sm:text-2xl text-vault-primary font-medium mb-6">
+        From Brute Force to Optimal — Visually
+      </p>
+      <p class="text-vault-muted max-w-2xl mx-auto mb-8 text-lg">
+        LeetCode solutions with step-by-step flow diagrams, Python &amp; Java code, company tags, and complexity analysis. Every problem explained from brute force to optimal.
+      </p>
+      <a href="/problems/" class="inline-block bg-vault-primary hover:bg-vault-primary-hover text-white font-semibold px-8 py-3 rounded-lg transition-colors text-lg">
+        Browse All Problems
+      </a>
+    </div>
+  </section>
+
+  <!-- Topics Grid -->
+  {topics.length > 0 && (
+    <section class="py-12 border-t border-vault-border">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-vault-text mb-6">Topics</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {topics.map(([topic, count]) => (
+            <a href={`/topic/${toSlug(topic)}/`} class="bg-vault-surface hover:bg-vault-surface-hover border border-vault-border rounded-lg p-3 transition-colors text-center">
+              <p class="text-vault-text font-semibold text-sm">{topic}</p>
+              <p class="text-vault-muted text-xs mt-1">{count} problem{count !== 1 ? 's' : ''}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Companies -->
+  {topCompanies.length > 0 && (
+    <section class="py-12 border-t border-vault-border">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-vault-text">Top Companies</h2>
+          <a href="/company/" class="text-vault-primary text-sm hover:underline">View all &rarr;</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
+          {topCompanies.map(([company, count]) => (
+            <a href={`/company/${toSlug(company)}/`} class="group bg-vault-surface hover:bg-vault-surface-hover border border-vault-border rounded-xl p-5 transition-all duration-200 flex flex-col items-center gap-3 hover:border-vault-primary/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-vault-primary/10">
+              <CompanyLogo company={company} size="md" />
+              <div class="text-center">
+                <p class="text-vault-text font-bold text-sm group-hover:text-vault-primary transition-colors">{company}</p>
+                <p class="text-vault-muted text-xs mt-1">{count} problem{count !== 1 ? 's' : ''}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- All Problems -->
+  {allProblems.length > 0 && (
+    <section class="py-12 border-t border-vault-border">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-vault-text">All Problems</h2>
+          <span id="problem-count" class="text-vault-muted text-sm">{allProblems.length} problem{allProblems.length !== 1 ? 's' : ''}</span>
+        </div>
+
+        <!-- Difficulty filter pills -->
+        <div class="flex flex-wrap items-center gap-2 mb-6">
+          <span class="text-vault-muted text-xs font-semibold uppercase tracking-wider mr-1">Difficulty:</span>
+          <div class="flex flex-wrap gap-2" id="difficulty-filters">
+            <button data-filter="all" class="diff-btn active px-4 py-1.5 rounded-full text-sm font-medium border border-vault-border bg-vault-primary text-white transition-colors">All</button>
+            <button data-filter="Easy" class="diff-btn px-4 py-1.5 rounded-full text-sm font-medium border border-vault-border bg-vault-surface text-vault-muted hover:text-vault-easy hover:border-vault-easy transition-colors">Easy</button>
+            <button data-filter="Medium" class="diff-btn px-4 py-1.5 rounded-full text-sm font-medium border border-vault-border bg-vault-surface text-vault-muted hover:text-vault-medium hover:border-vault-medium transition-colors">Medium</button>
+            <button data-filter="Hard" class="diff-btn px-4 py-1.5 rounded-full text-sm font-medium border border-vault-border bg-vault-surface text-vault-muted hover:text-vault-hard hover:border-vault-hard transition-colors">Hard</button>
+          </div>
+        </div>
+
+        <!-- Problems table -->
+        <div class="bg-vault-surface border border-vault-border rounded-xl overflow-hidden">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-vault-border text-vault-muted text-xs uppercase tracking-wider">
+                <th class="text-left py-3 px-4 font-semibold w-16">#</th>
+                <th class="text-left py-3 px-4 font-semibold">Title</th>
+                <th class="text-left py-3 px-4 font-semibold hidden sm:table-cell">Topics</th>
+                <th class="text-left py-3 px-4 font-semibold w-24">Difficulty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allProblems.map((problem, i) => (
+                <tr
+                  class={`problem-row border-b border-vault-border last:border-0 hover:bg-vault-surface-hover transition-colors ${i % 2 === 0 ? '' : 'bg-vault-bg/50'}`}
+                  data-difficulty={problem.data.difficulty}
+                >
+                  <td class="py-3 px-4 text-vault-muted text-sm font-mono">{problem.data.number}</td>
+                  <td class="py-3 px-4">
+                    <a href={`/problems/${problem.id}/`} class="text-vault-text hover:text-vault-primary font-medium text-sm transition-colors">
+                      {problem.data.title}
+                    </a>
+                  </td>
+                  <td class="py-3 px-4 hidden sm:table-cell">
+                    <div class="flex flex-wrap gap-1">
+                      {problem.data.tags.slice(0, 3).map((tag) => (
+                        <span class="text-xs px-2 py-0.5 rounded bg-vault-primary/10 text-vault-primary">{tag}</span>
+                      ))}
+                      {problem.data.tags.length > 3 && (
+                        <span class="text-xs text-vault-muted">+{problem.data.tags.length - 3}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      problem.data.difficulty === 'Easy' ? 'bg-vault-easy/15 text-vault-easy' :
+                      problem.data.difficulty === 'Medium' ? 'bg-vault-medium/15 text-vault-medium' :
+                      'bg-vault-hard/15 text-vault-hard'
+                    }`}>{problem.data.difficulty}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const diffBtns = document.querySelectorAll('.diff-btn');
+      const rows = document.querySelectorAll('.problem-row');
+      const countEl = document.getElementById('problem-count');
+
+      diffBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filter = btn.getAttribute('data-filter');
+
+          diffBtns.forEach(b => {
+            b.classList.remove('active', 'bg-vault-primary', 'text-white');
+            b.classList.add('bg-vault-surface', 'text-vault-muted');
+          });
+          btn.classList.add('active', 'bg-vault-primary', 'text-white');
+          btn.classList.remove('bg-vault-surface', 'text-vault-muted');
+
+          let visible = 0;
+          rows.forEach(row => {
+            if (filter === 'all' || row.getAttribute('data-difficulty') === filter) {
+              (row as HTMLElement).style.display = '';
+              visible++;
+            } else {
+              (row as HTMLElement).style.display = 'none';
+            }
+          });
+          if (countEl) countEl.textContent = `${visible} problem${visible !== 1 ? 's' : ''}`;
+        });
+      });
+    });
+  </script>
+</BaseLayout>

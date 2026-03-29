@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CompanyLogo from '../../components/CompanyLogo.astro';
+import { toSlug } from '../../utils/slug';
+
+const problems = await getCollection('problems');
+const companyMap = new Map<string, number>();
+
+for (const problem of problems) {
+  for (const company of problem.data.companies) {
+    companyMap.set(company, (companyMap.get(company) || 0) + 1);
+  }
+}
+
+const companies = [...companyMap.entries()]
+  .sort((a, b) => b[1] - a[1]);
+---
+
+<BaseLayout title="Companies" description="Browse LeetCode problems by company — Amazon, Google, Meta, Microsoft, and more.">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-vault-text mb-6">Companies</h1>
+    <p class="text-vault-muted mb-8">Problems tagged by company. Click a company to see all their interview problems.</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {companies.map(([company, count]) => (
+        <a href={`/company/${toSlug(company)}/`} class="group bg-vault-surface hover:bg-vault-surface-hover border border-vault-border rounded-xl p-6 transition-all duration-200 flex flex-col items-center gap-3 hover:border-vault-primary/40 hover:-translate-y-1 hover:shadow-lg hover:shadow-vault-primary/10">
+          <CompanyLogo company={company} size="lg" />
+          <div class="text-center">
+            <p class="text-vault-text font-bold text-sm group-hover:text-vault-primary transition-colors">{company}</p>
+            <p class="text-vault-muted text-xs mt-1">{count} problem{count !== 1 ? 's' : ''}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

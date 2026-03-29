@@ -1,0 +1,85 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DifficultyBadge from '../../components/DifficultyBadge.astro';
+import SearchFilter from '../../components/SearchFilter.astro';
+import { toSlug } from '../../utils/slug';
+
+const problems = await getCollection('problems');
+const sorted = problems.sort((a, b) => a.data.number - b.data.number);
+
+const allTags = [...new Set(problems.flatMap((p) => p.data.tags))].sort();
+
+const searchData = sorted.map((p) => ({
+  id: p.id,
+  number: p.data.number,
+  title: p.data.title,
+  difficulty: p.data.difficulty,
+  tags: p.data.tags,
+  companies: p.data.companies,
+}));
+---
+
+<BaseLayout title="All Problems" description="Browse all LeetCode problems with solutions — visual flow diagrams, brute force to optimal, in Python and Java.">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-vault-text mb-6">All Problems</h1>
+
+    <SearchFilter problems={searchData} allTags={allTags} />
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-vault-border text-left">
+            <th class="py-3 px-2 text-vault-muted font-medium w-16">#</th>
+            <th class="py-3 px-2 text-vault-muted font-medium">Problem</th>
+            <th class="py-3 px-2 text-vault-muted font-medium w-24">Difficulty</th>
+            <th class="py-3 px-2 text-vault-muted font-medium hidden md:table-cell">Topics</th>
+            <th class="py-3 px-2 text-vault-muted font-medium hidden lg:table-cell">Companies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((problem) => (
+            <tr
+              class="border-b border-vault-border/50 hover:bg-vault-surface transition-colors"
+              data-problem={JSON.stringify({
+                number: problem.data.number,
+                title: problem.data.title,
+                difficulty: problem.data.difficulty,
+                tags: problem.data.tags,
+                companies: problem.data.companies,
+              })}
+            >
+              <td class="py-3 px-2 text-vault-muted">{problem.data.number}</td>
+              <td class="py-3 px-2">
+                <a href={`/problems/${problem.id}/`} class="text-vault-text hover:text-vault-primary transition-colors font-medium">
+                  {problem.data.title}
+                </a>
+              </td>
+              <td class="py-3 px-2">
+                <DifficultyBadge difficulty={problem.data.difficulty} />
+              </td>
+              <td class="py-3 px-2 hidden md:table-cell">
+                <div class="flex flex-wrap gap-1">
+                  {problem.data.tags.map((tag) => (
+                    <a href={`/topic/${toSlug(tag)}/`} class="text-xs px-1.5 py-0.5 rounded bg-vault-primary/10 text-vault-primary">
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              </td>
+              <td class="py-3 px-2 hidden lg:table-cell">
+                <div class="flex flex-wrap gap-1">
+                  {problem.data.companies.slice(0, 3).map((company) => (
+                    <a href={`/company/${toSlug(company)}/`} class="text-xs text-vault-muted hover:text-vault-text">
+                      {company}
+                    </a>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,29 @@
+---
+import { siteConfig, hasAdsense } from '../config/site';
+
+interface Props {
+  slot?: 'header' | 'between-sections' | 'after-content' | 'footer';
+}
+
+const { slot = 'between-sections' } = Astro.props;
+---
+
+{hasAdsense ? (
+  <div class={`ad-placement ad-${slot} my-6`} data-ad-slot={slot}>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={siteConfig.adsenseId}
+      data-ad-slot="auto"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
+    <script is:inline>
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+) : (
+  <div class={`ad-placement ad-${slot} my-6`} data-ad-slot={slot}>
+    <div class="h-0" />
+  </div>
+)}
