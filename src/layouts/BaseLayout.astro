@@ -58,6 +58,25 @@ const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
     )}
   </head>
   <body class="min-h-screen flex flex-col">
+    <!-- Growth Banner -->
+    <div id="growth-banner" class="bg-vault-primary/10 border-b border-vault-primary/20 px-4 py-2.5 text-center relative">
+      <p class="text-sm text-vault-text">
+        <span class="text-vault-primary font-semibold">🚀 We're growing!</span>
+        <span class="text-vault-muted"> — New problems added weekly. Bookmark us and check back often.</span>
+      </p>
+      <button id="close-banner" class="absolute right-3 top-1/2 -translate-y-1/2 text-vault-muted hover:text-vault-text text-lg leading-none" aria-label="Close banner">&times;</button>
+    </div>
+    <script>
+      const banner = document.getElementById('growth-banner');
+      const closeBtn = document.getElementById('close-banner');
+      if (banner && closeBtn) {
+        if (sessionStorage.getItem('banner-closed')) banner.style.display = 'none';
+        closeBtn.addEventListener('click', () => {
+          banner.style.display = 'none';
+          sessionStorage.setItem('banner-closed', '1');
+        });
+      }
+    </script>
     <Header />
     <main class="flex-grow">
       <slot />
