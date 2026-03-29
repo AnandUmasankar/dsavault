@@ -769,6 +769,9 @@ const breadcrumbs = [
 
   // ── Copy buttons (must run before enhance so code blocks are in place) ──
   document.querySelectorAll('#problem-content pre:not([class*="mermaid"])').forEach((pre) => {
+    // Skip mermaid code blocks
+    if (pre.getAttribute('data-language') === 'mermaid') return;
+
     const wrapper = document.createElement('div');
     wrapper.className = 'relative group';
     pre.parentNode?.insertBefore(wrapper, pre);
@@ -788,10 +791,60 @@ const breadcrumbs = [
     wrapper.appendChild(btn);
   });
 
-  enhanceProblemPage();
+  // ── Client-side Mermaid Rendering ──
+  async function renderMermaidDiagrams() {
+    const content = document.getElementById('problem-content');
+    if (!content) return;
+
+    // Find Shiki-rendered mermaid code blocks
+    const mermaidBlocks = content.querySelectorAll('pre[data-language="mermaid"]');
+    if (mermaidBlocks.length === 0) return;
+
+    // Load Mermaid from CDN
+    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryBorderColor: '#3B82F6',
+        primaryTextColor: '#E2E8F0',
+        lineColor: '#94A3B8',
+        secondaryColor: '#1a2540',
+        tertiaryColor: '#131C31',
+        fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+      },
+    });
+
+    // Convert each Shiki code block to a mermaid-rendered SVG
+    for (let i = 0; i < mermaidBlocks.length; i++) {
+      const pre = mermaidBlocks[i];
+      const code = pre.querySelector('code');
+      if (!code) continue;
+
+      // Extract the raw mermaid text (strip Shiki spans)
+      const mermaidCode = code.textContent || '';
+      const id = `mermaid-${i}`;
+
+      try {
+        const { svg } = await mermaid.render(id, mermaidCode.trim());
+        const container = document.createElement('div');
+        container.innerHTML = svg;
+        pre.replaceWith(container.firstElementChild!);
+      } catch {
+        // Leave the code block as-is if rendering fails
+      }
+    }
+  }
+
+  // Run mermaid first, then enhance page and init lightbox
+  renderMermaidDiagrams().then(() => {
+    enhanceProblemPage();
+    initDiagramLightbox();
+  });
 
   // ── 6. Mermaid Lightbox — cursor-follow panning ──
-  (function initDiagramLightbox() {
+  function initDiagramLightbox() {
     const lightbox = document.createElement('div');
     lightbox.className = 'diagram-lightbox';
     lightbox.innerHTML = `
@@ -913,7 +966,7 @@ const breadcrumbs = [
         openLightbox(svg as SVGElement);
       });
     });
-  })();
+  }
 
   // ── YouTube Timer Countdown ──
   (function initYtTimer() {
